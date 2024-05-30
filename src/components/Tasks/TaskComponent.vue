@@ -6,7 +6,12 @@
     @click="updateTask({ id: id, updates: { completed: !task.completed } })"
   >
     <q-item-section side top>
-      <q-checkbox :value="task.completed" class="no-pointer-event"></q-checkbox>
+      <q-checkbox
+        v-model="taskCompleted"
+        clickable
+        @click="$emit('changeStatus')"
+        @changeTheBox="taskCompleted = task.completed"
+      ></q-checkbox>
     </q-item-section>
 
     <q-item-section>
@@ -15,7 +20,7 @@
       }}</q-item-label>
     </q-item-section>
 
-    <q-item-section side>
+    <q-item-section v-if="task.dueDate" side>
       <div class="row">
         <div class="column justify-center">
           <q-icon name="event" size="18px" class="q-mr-xs" />
@@ -31,15 +36,49 @@
       </div>
     </q-item-section>
     <q-item-section side>
-      <q-btn
-        @click.stop="promptToDelete(id)"
-        flat
-        round
-        color="red"
-        icon="delete"
-        dense
-      ></q-btn>
+      <div class="row">
+        <q-btn
+          @click.stop="showEditTask = true"
+          flat
+          round
+          color="blue"
+          icon="edit"
+          dense
+        ></q-btn>
+
+        <q-btn
+          @click.stop="promptToDelete(id)"
+          flat
+          round
+          color="red"
+          icon="delete"
+          dense
+        ></q-btn>
+      </div>
     </q-item-section>
+
+    <q-dialog v-model="showEditTask">
+      <q-card>
+        <modal-header @close="showEditTask = false">Edit Task</modal-header>
+        <q-card-section>
+          <div>
+            <q-input
+              label="task name"
+              autofocus
+              outlined
+              class="col"
+              :rules="[(val) => !!val || 'Field is required']"
+            ></q-input>
+          </div>
+          <div class="row q-mb-sm">
+            <q-input outlined label="Due Date" class="col" />
+            <template>
+              <q-icon name="event" class="cursor-pointer"></q-icon>
+            </template>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-item>
 </template>
 <script>
@@ -49,7 +88,13 @@ import { defineComponent } from "vue";
 import { mapActions } from "vuex";
 
 export default {
-  props: ["task", "id"],
+  props: ["task", "id", "status"],
+  data() {
+    return {
+      showEditTask: false,
+      taskCompleted: this.status,
+    };
+  },
   methods: {
     ...mapActions("tasks", ["updateTask", "deleteTask"]),
     promptToDelete(id) {
@@ -64,6 +109,19 @@ export default {
           console.log("Task Deleted");
           this.deleteTask(id);
         });
+    },
+  },
+  components: {
+    // "edit-task": require("components/Tasks/Modals/EditTask.vue").default,
+    "modal-header": require("components/Tasks/Modals/Shared/ModalHeader.vue")
+      .default,
+  },
+  computed: {
+    ...mapGetters("tasks", ["tasks"]),
+  },
+  watch: {
+    status() {
+      this.taskCompleted = this.status;
     },
   },
 };

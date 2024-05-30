@@ -2,16 +2,12 @@ import { mapActions } from 'vuex'; import { toRefs } from 'vue'; import { toRefs
 } from 'vue'; import { LogarithmicScale } from 'chart.js';
 <template>
   <q-card>
-    <q-card-section class="row">
-      <div class="text-h6">Add Task</div>
-      <q-space></q-space>
-      <q-btn flat round color="primary" icon="close" @click="close" clickable />
-    </q-card-section>
-
+    <modal-header @close="close"> Add Task </modal-header>
     <form @submit="submitForm">
       <q-card-section class="q-pt-none">
-        <div class="row q-mb-sm">
+        <!-- <div class="row q-mb-sm">
           <q-input
+            autofocus
             outlined
             v-model="taskToSubmit.name"
             label="Task Name"
@@ -19,9 +15,13 @@ import { mapActions } from 'vuex'; import { toRefs } from 'vue'; import { toRefs
             :rules="[(val) => !!val || 'Field is required']"
             ref="name"
           />
-        </div>
+        </div> -->
+        <modal-task-name
+          :name="taskToSubmit.name"
+          @name-change="taskToSubmit.name = $event"
+        ></modal-task-name>
         <div class="row q-mb-sm">
-          <q-input outlined v-model="taskToSubmit.dueDate" label="Due Date">
+          <!-- <q-input outlined v-model="taskToSubmit.dueDate" label="Due Date">
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy
@@ -37,10 +37,14 @@ import { mapActions } from 'vuex'; import { toRefs } from 'vue'; import { toRefs
                 </q-popup-proxy>
               </q-icon>
             </template>
-          </q-input>
+          </q-input> -->
+          <TaskDate
+            @change-date="taskToSubmit.dueDate = $event"
+            :date="taskToSubmit.dueDate"
+          ></TaskDate>
         </div>
-        <div class="row q-mb-sm">
-          <q-input outlined v-model="taskToSubmit.dueTime" label="Due Time">
+        <div v-if="taskToSubmit.dueDate" class="row q-mb-sm">
+          <!-- <q-input outlined v-model="taskToSubmit.dueTime" label="Due Time">
             <template v-slot:append>
               <q-icon name="access_time" class="cursor-pointer">
                 <q-popup-proxy
@@ -56,7 +60,11 @@ import { mapActions } from 'vuex'; import { toRefs } from 'vue'; import { toRefs
                 </q-popup-proxy>
               </q-icon>
             </template>
-          </q-input>
+          </q-input> -->
+          <TaskTime
+            :time="taskToSubmit.dueTime"
+            @change-time="taskToSubmit.dueTime = $event"
+          ></TaskTime>
         </div>
       </q-card-section>
 
@@ -69,6 +77,9 @@ import { mapActions } from 'vuex'; import { toRefs } from 'vue'; import { toRefs
 </template>
 <script>
 import { mapActions } from "vuex";
+import header from "/home/yusuf/learning-project/src/components/Tasks/Modals/Shared/ModalHeader.vue";
+import TaskDate from "/home/yusuf/learning-project/src/components/Tasks/Modals/Shared/ModalTaskDate.vue";
+import TaskTime from "/home/yusuf/learning-project/src/components/Tasks/Modals/Shared/ModalTaskTime.vue";
 export default {
   data() {
     return {
@@ -80,15 +91,17 @@ export default {
       },
     };
   },
+
   methods: {
     ...mapActions("tasks", ["addTask"]),
     submitForm() {
       console.log("submitForm");
-      this.$refs.name.validate();
-      //   console.log(this.$refs.name);
-      if (!this.$refs.name.hasError) {
-        this.submitTask();
-      }
+      // this.$refs.name.validate();
+      // console.log(this.$refs.name);
+      // if (!this.$refs.name.hasError) {
+      this.submitTask();
+      // console.log("submitted");
+      // }
     },
     submitTask() {
       this.addTask(this.taskToSubmit);
@@ -97,6 +110,15 @@ export default {
     close() {
       this.$emit("close");
     },
+  },
+  components: {
+    "modal-header": require("components/Tasks/Modals/Shared/ModalHeader.vue")
+      .default,
+    "modal-task-name":
+      require("components/Tasks/Modals/Shared/ModalTaskName.vue").default,
+
+    TaskDate,
+    TaskTime,
   },
 };
 </script>
